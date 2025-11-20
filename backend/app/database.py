@@ -7,7 +7,7 @@ from fastapi import Depends
 
 
 
-URL_DATABASE = "mysql+pymysql://root:sufyan@localhost:3306/ecommerce"
+URL_DATABASE = "mysql+pymysql://root:Shayan80412#!@localhost:3306/full-stack-ecommercewebsite"
 
 engine = create_engine(URL_DATABASE)
 
