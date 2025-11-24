@@ -11,7 +11,7 @@ router = APIRouter(
 )
 
 @router.post("/registration", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
-def user_register(user: schemas.UserRegister, db: db_dependency):
+async def user_register(user: schemas.UserRegister, db: db_dependency):
 
     # Check if user with email already exists
     existing_user = db.query(models.User).filter(models.User.email == user.email).first()
@@ -51,7 +51,7 @@ def user_register(user: schemas.UserRegister, db: db_dependency):
 
 
 @router.get("/{user_id}", response_model=schemas.UserResponse)
-def get_user(user_id: int, db: db_dependency):
+async def get_user(user_id: int, db: db_dependency):
 
     user = db.query(models.User).filter(models.User.id == user_id).first()
     
@@ -64,15 +64,15 @@ def get_user(user_id: int, db: db_dependency):
     return user
 
 
-@router.get("/", response_model=List[schemas.UserResponse])
-def get_all_users(db: db_dependency, skip: int = 0, limit: int = 100):
+@router.get("", response_model=List[schemas.UserResponse])
+async def get_all_users(db: db_dependency, skip: int = 0, limit: int = 100):
 
     users = db.query(models.User).offset(skip).limit(limit).all()
     return users
 
 
 @router.put("/{user_id}", response_model=schemas.UserResponse)
-def update_user(user_id: int, user_update: schemas.UserUpdate, db: db_dependency):
+async def update_user(user_id: int, user_update: schemas.UserUpdate, db: db_dependency):
 
     user = db.query(models.User).filter(models.User.id == user_id).first()
     
@@ -115,7 +115,7 @@ def update_user(user_id: int, user_update: schemas.UserUpdate, db: db_dependency
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, db: db_dependency):
+async def delete_user(user_id: int, db: db_dependency):
 
     user = db.query(models.User).filter(models.User.id == user_id).first()
     

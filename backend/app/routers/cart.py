@@ -19,7 +19,7 @@ def get_or_create_cart(db, user_id: int):
 
 
 @router.get("/me",status_code = status.HTTP_200_OK, response_model=List[schemas.CartItemResponse])
-def get_my_cart(db: db_dependency, current_user: models.User = Depends(get_current_user)):
+async def get_my_cart(db: db_dependency, current_user: models.User = Depends(get_current_user)):
 	cart = get_or_create_cart(db, current_user.id)
 	items = (
 		db.query(models.CartItem)
@@ -30,7 +30,7 @@ def get_my_cart(db: db_dependency, current_user: models.User = Depends(get_curre
 
 
 @router.post("/add", status_code=status.HTTP_201_CREATED, response_model=schemas.CartItemResponse)
-def add_to_cart(product_id: int, quantity: int = 1, db: db_dependency = None, current_user: models.User = Depends(get_current_user)):
+async def add_to_cart(product_id: int, quantity: int = 1, db: db_dependency = None, current_user: models.User = Depends(get_current_user)):
 	if quantity < 1:
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quantity must be >= 1")
 	
@@ -57,7 +57,7 @@ def add_to_cart(product_id: int, quantity: int = 1, db: db_dependency = None, cu
 
 
 @router.put("/update", status_code=status.HTTP_200_OK, response_model=schemas.CartItemResponse)
-def update_cart_item(item_id: int, quantity: int, db: db_dependency = None, current_user: models.User = Depends(get_current_user)):
+async def update_cart_item(item_id: int, quantity: int, db: db_dependency = None, current_user: models.User = Depends(get_current_user)):
 	item = db.query(models.CartItem).filter(models.CartItem.id == item_id, models.CartItem.user_id == current_user.id).first()
 	if not item:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cart item not found")
@@ -70,7 +70,7 @@ def update_cart_item(item_id: int, quantity: int, db: db_dependency = None, curr
 
 
 @router.delete("/remove/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_cart_item(item_id: int, db: db_dependency, quantity: int=1, current_user: models.User = Depends(get_current_user)):
+async def remove_cart_item(item_id: int, db: db_dependency, quantity: int=1, current_user: models.User = Depends(get_current_user)):
 	item = db.query(models.CartItem).filter(models.CartItem.id == item_id, models.CartItem.user_id == current_user.id).first()
 	if not item:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cart item not found")

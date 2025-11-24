@@ -71,7 +71,7 @@ class Category(Base):
     name = Column(String(20), nullable=False, unique=True)
     description = Column(Text)
 
-    products = relationship("Product", back_populates="category") 
+    products = relationship("Product", back_populates="category", cascade="all, delete-orphan") 
 
 class Product(Base):
 
@@ -88,8 +88,8 @@ class Product(Base):
 
     # relationship
     category = relationship("Category", back_populates="products")
-    order_items = relationship("OrderItem", back_populates="product")
-    cart_items = relationship("CartItem", back_populates="product")
+    order_items = relationship("OrderItem", back_populates="product", cascade="all, delete-orphan")
+    cart_items = relationship("CartItem", back_populates="product", cascade="all, delete-orphan")
     stock_transactions = relationship("StockTransaction", back_populates="product")
 
 class Order(Base):

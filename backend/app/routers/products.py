@@ -9,8 +9,8 @@ from ..auth import require_admin, get_current_user
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
-@router.get("/", response_model=schemas.PaginatedProductResponse)
-def list_products(
+@router.get("", response_model=schemas.PaginatedProductResponse)
+async def list_products(
 	db: db_dependency,
 	page: int = Query(1, ge=1),
 	limit: int = Query(10, ge=1, le=100),
@@ -29,7 +29,7 @@ def list_products(
 
 
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
-def get_product_by_id(product_id: int, db: db_dependency):
+async def get_product_by_id(product_id: int, db: db_dependency):
 	product = (
 		db.query(models.Product)
 		.options(joinedload(models.Product.category))
@@ -41,8 +41,8 @@ def get_product_by_id(product_id: int, db: db_dependency):
 	return product
 
 
-@router.post("/", response_model=schemas.ProductResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
-def create_product(product: schemas.ProductCreate, db: db_dependency):
+@router.post("", response_model=schemas.ProductResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
+async def create_product(product: schemas.ProductCreate, db: db_dependency):
 	# Minimal validation; in a real app use a ProductCreate schema
 	product = models.Product(
 		name=product.name,
@@ -59,7 +59,7 @@ def create_product(product: schemas.ProductCreate, db: db_dependency):
 
 
 @router.put("/{product_id}", response_model=schemas.ProductResponse, dependencies=[Depends(require_admin)])
-def update_product(product_id: int, product: schemas.ProductCreate, db: db_dependency):
+async def update_product(product_id: int, product: schemas.ProductCreate, db: db_dependency):
 	prd = db.query(models.Product).filter(models.Product.id == product_id).first()
 	if not prd:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
@@ -75,10 +75,15 @@ def update_product(product_id: int, product: schemas.ProductCreate, db: db_depen
 
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin)])
-def delete_product(product_id: int, db: db_dependency):
+async def delete_product(product_id: int, db: db_dependency):
 	product = db.query(models.Product).filter(models.Product.id == product_id).first()
 	if not product:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 	db.delete(product)
 	db.commit()
 	return None
+
+@router.get("/categories/{category_id}/products")
+def get_products_by_category(category_id: int, db: db_dependency):
+    products = db.query(models.Product).filter(models.Product.category_id == category_id).all()
+    return products

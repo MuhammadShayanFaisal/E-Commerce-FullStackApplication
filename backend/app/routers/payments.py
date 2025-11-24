@@ -8,7 +8,7 @@ router = APIRouter(prefix="/payments", tags=["Payments"])
 
 
 @router.post("/{order_id}")
-def pay_order(order_id: int, db: db_dependency, current_user: models.User = Depends(get_current_user)):
+async def pay_order(order_id: int, db: db_dependency, current_user: models.User = Depends(get_current_user)):
 	order = db.query(models.Order).filter(models.Order.id == order_id).first()
 	if not order:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
@@ -53,7 +53,7 @@ def pay_order(order_id: int, db: db_dependency, current_user: models.User = Depe
 
 
 @router.get("/{order_id}")
-def get_payment(order_id: int, db: db_dependency, current_user: models.User = Depends(get_current_user)):
+async def get_payment(order_id: int, db: db_dependency, current_user: models.User = Depends(get_current_user)):
 	order = db.query(models.Order).filter(models.Order.id == order_id).first()
 	if not order:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")

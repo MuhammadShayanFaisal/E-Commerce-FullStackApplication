@@ -7,8 +7,8 @@ from ..auth import get_current_user, require_admin
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.OrderResponse)
-def create_order_from_cart(db: db_dependency, current_user: models.User = Depends(get_current_user)):
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=schemas.OrderResponse)
+async def create_order_from_cart(db: db_dependency, current_user: models.User = Depends(get_current_user)):
     cart = db.query(models.Cart).filter(models.Cart.user_id == current_user.id).first()
     if not cart:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cart is empty")
@@ -50,8 +50,8 @@ def create_order_from_cart(db: db_dependency, current_user: models.User = Depend
     return {"order_id": order.id, "amount": order.amount, "status": order.status}
 
 
-@router.get("/", dependencies=[Depends(require_admin)])
-def list_orders(db: db_dependency):
+@router.get("", dependencies=[Depends(require_admin)])
+async def list_orders(db: db_dependency):
 	orders = db.query(models.Order).options(joinedload(models.Order.items)).all()
 	return [
 		{
@@ -68,7 +68,7 @@ def list_orders(db: db_dependency):
 
 
 @router.get("/me")
-def list_my_orders(db: db_dependency, current_user: models.User = Depends(get_current_user)):
+async def list_my_orders(db: db_dependency, current_user: models.User = Depends(get_current_user)):
 	orders = (
 		db.query(models.Order)
 		.filter(models.Order.user_id == current_user.id)
@@ -89,7 +89,7 @@ def list_my_orders(db: db_dependency, current_user: models.User = Depends(get_cu
 
 
 @router.get("/{order_id}")
-def get_order(order_id: int, db: db_dependency, current_user: models.User = Depends(get_current_user)):
+async def get_order(order_id: int, db: db_dependency, current_user: models.User = Depends(get_current_user)):
 	order = (
 		db.query(models.Order)
 		.filter(models.Order.id == order_id)

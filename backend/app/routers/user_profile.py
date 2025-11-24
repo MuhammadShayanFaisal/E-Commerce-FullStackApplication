@@ -10,12 +10,12 @@ router = APIRouter(
 )
 
 @router.get("/me", response_model=schemas.UserResponse)
-def get_my_profile(current_user: models.User = Depends(get_current_user)):
+async def get_my_profile(current_user: models.User = Depends(get_current_user)):
 	return current_user
 
 
 @router.put("/me", response_model=schemas.UserResponse)
-def update_my_profile(update: schemas.UserUpdate, db: db_dependency = None, current_user: models.User = Depends(get_current_user)):
+async def update_my_profile(update: schemas.UserUpdate, db: db_dependency = None, current_user: models.User = Depends(get_current_user)):
 	# Only allow updating own profile fields
 	if update.username:
 		current_user.username = update.username
