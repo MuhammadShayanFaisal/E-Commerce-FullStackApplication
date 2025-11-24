@@ -11,14 +11,24 @@ export interface LoginResponse {
 }
 
 export type UserRole = 'User' | 'Admin';
+export type PaymentMethod = 'Card' | 'Cash' | 'Wallet';
 
 export interface User {
   id: number;
   email: string;
   username: string;
   role: UserRole;
+  location: string;
+  payment_options: PaymentMethod;
+  is_verified: boolean;
+  join_data: string;
+}
+
+export interface UserUpdatePayload {
+  username?: string;
+  email?: string;
   location?: string;
-  payment_options?: string;
+  payment_options?: PaymentMethod;
 }
 
 export interface Category {
@@ -38,6 +48,20 @@ export interface Product {
   category?: Category;
   category_id?: number;
   image_url?: string;
+}
+
+export interface ProductInput {
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  min_stock_level: number;
+  category_id: number;
+}
+
+export interface CategoryInput {
+  name: string;
+  description?: string;
 }
 
 export interface ProductPaginatedResponse {
@@ -210,7 +234,14 @@ class ApiClient {
   }
 
   async getCurrentUser(): Promise<User> {
-    return this.request<User>('/auth/me');
+    return this.request<User>('/user-profile/me');
+  }
+
+  async updateMyProfile(payload: UserUpdatePayload): Promise<User> {
+    return this.request<User>('/user-profile/me', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
   }
 
   // Product endpoints
@@ -241,6 +272,26 @@ class ApiClient {
   // Category endpoints
   async getCategories(): Promise<Category[]> {
     return this.request<Category[]>('/categories');
+  }
+
+  async createCategory(payload: CategoryInput): Promise<Category> {
+    return this.request<Category>('/categories', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateCategory(categoryId: number, payload: CategoryInput): Promise<Category> {
+    return this.request<Category>(`/categories/${categoryId}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteCategory(categoryId: number): Promise<void> {
+    return this.request<void>(`/categories/${categoryId}`, {
+      method: 'DELETE',
+    });
   }
 
   // Cart endpoints
@@ -319,6 +370,29 @@ class ApiClient {
     });
 
     return productMap;
+  }
+
+  // Admin product endpoints
+  async createProduct(payload: ProductInput): Promise<Product> {
+    const product = await this.request<Product>('/products', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return this.normalizeProduct(product);
+  }
+
+  async updateProduct(productId: number, payload: ProductInput): Promise<Product> {
+    const product = await this.request<Product>(`/products/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    return this.normalizeProduct(product);
+  }
+
+  async deleteProduct(productId: number): Promise<void> {
+    return this.request<void>(`/products/${productId}`, {
+      method: 'DELETE',
+    });
   }
 }
 
