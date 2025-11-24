@@ -1,12 +1,28 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api, User } from '@/lib/api';
-import { useToast } from '@/hooks/use-toast';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import {
+  api,
+  PaymentMethod,
+  User,
+  UserRole,
+  UserUpdatePayload,
+} from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, username: string, password: string) => Promise<void>;
+  register: (
+    email: string,
+    username: string,
+    password: string,
+    options?: {
+      location?: string;
+      paymentOptions?: PaymentMethod;
+      role?: UserRole;
+    }
+  ) => Promise<void>;
+  updateProfile: (updates: UserUpdatePayload) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -23,13 +39,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     if (token) {
       try {
         const currentUser = await api.getCurrentUser();
         setUser(currentUser);
       } catch (error) {
-        localStorage.removeItem('access_token');
+        localStorage.removeItem("access_token");
       }
     }
     setLoading(false);
@@ -38,48 +54,85 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const response = await api.login(email, password);
-      localStorage.setItem('access_token', response.access_token);
+      localStorage.setItem("access_token", response.access_token);
       const currentUser = await api.getCurrentUser();
       setUser(currentUser);
       toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
+        title: "Welcome back!",
+        description: "You have successfully logged in.",
       });
     } catch (error) {
       toast({
-        title: 'Login failed',
-        description: error instanceof Error ? error.message : 'Invalid credentials',
-        variant: 'destructive',
+        title: "Login failed",
+        description:
+          error instanceof Error ? error.message : "Invalid credentials",
+        variant: "destructive",
       });
       throw error;
     }
   };
 
-  const register = async (email: string, username: string, password: string) => {
+  const register = async (
+    email: string,
+    username: string,
+    password: string,
+    options?: {
+      location?: string;
+      paymentOptions?: PaymentMethod;
+      role?: UserRole;
+    }
+  ) => {
     try {
-      await api.register(email, username, password);
+      await api.register(
+        email,
+        username,
+        password,
+        options?.location,
+        options?.paymentOptions,
+        options?.role
+      );
       await login(email, password);
       toast({
-        title: 'Account created!',
-        description: 'Welcome to our store.',
+        title: "Account created!",
+        description: "Welcome to our store.",
       });
     } catch (error) {
       toast({
-        title: 'Registration failed',
-        description: error instanceof Error ? error.message : 'Could not create account',
-        variant: 'destructive',
+        title: "Registration failed",
+        description:
+          error instanceof Error ? error.message : "Could not create account",
+        variant: "destructive",
       });
       throw error;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem("access_token");
     setUser(null);
     toast({
-      title: 'Logged out',
-      description: 'You have been logged out successfully.',
+      title: "Logged out",
+      description: "You have been logged out successfully.",
     });
+  };
+
+  const updateProfile = async (updates: UserUpdatePayload) => {
+    try {
+      const updatedUser = await api.updateMyProfile(updates);
+      setUser(updatedUser);
+      toast({
+        title: "Profile updated",
+        description: "Your account information has been saved.",
+      });
+    } catch (error) {
+      toast({
+        title: "Update failed",
+        description:
+          error instanceof Error ? error.message : "Could not update profile",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   return (
@@ -89,6 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         login,
         register,
+        updateProfile,
         logout,
         isAuthenticated: !!user,
       }}
@@ -101,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

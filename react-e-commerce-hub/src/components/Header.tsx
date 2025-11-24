@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, Package } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { useCart } from '@/contexts/CartContext';
+import { Link } from "react-router-dom";
+import { ShoppingCart, User, LogOut, Package } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 
 export function Header() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -39,6 +39,14 @@ export function Header() {
           >
             Categories
           </Link>
+          {user?.role === "Admin" && (
+            <Link
+              to="/admin"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              Admin
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center space-x-4">
