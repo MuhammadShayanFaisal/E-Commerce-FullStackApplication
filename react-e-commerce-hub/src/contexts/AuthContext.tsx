@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (email: string, username: string, password: string) => {
     try {
-      await api.register(email, username, password, );
+      await api.register(email, username, password);
       await login(email, password);
       toast({
         title: 'Account created!',

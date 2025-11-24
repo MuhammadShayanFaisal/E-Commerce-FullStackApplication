@@ -46,7 +46,7 @@ export default function Profile() {
               <div>
                 <p className="text-sm text-muted-foreground">Account Type</p>
                 <p className="font-semibold">
-                  {user.is_admin ? 'Administrator' : 'Customer'}
+                  {user.role === 'Admin' ? 'Administrator' : 'Customer'}
                 </p>
               </div>
             </div>

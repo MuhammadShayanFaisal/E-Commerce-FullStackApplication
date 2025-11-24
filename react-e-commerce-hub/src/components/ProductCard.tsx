@@ -49,9 +49,9 @@ export function ProductCard({ product }: ProductCardProps) {
           <p className="text-lg font-bold text-primary mt-2">
             ${Number(product.price).toFixed(2)}
           </p>
-          {product.stock_quantity > 0 ? (
+          {product.stock > 0 ? (
             <p className="text-xs text-muted-foreground mt-1">
-              {product.stock_quantity} in stock
+              {product.stock} in stock
             </p>
           ) : (
             <p className="text-xs text-destructive mt-1">Out of stock</p>
@@ -61,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <Button
             className="w-full"
             onClick={handleAddToCart}
-            disabled={product.stock_quantity === 0}
+            disabled={product.stock === 0}
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
             Add to Cart

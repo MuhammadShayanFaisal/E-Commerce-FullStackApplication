@@ -35,8 +35,9 @@ export default function Products() {
     const matchesSearch = product.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
+    const categoryId = product.category_id ?? product.category?.id ?? null;
     const matchesCategory =
-      selectedCategory === null || product.category_id === selectedCategory;
+      selectedCategory === null || categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 

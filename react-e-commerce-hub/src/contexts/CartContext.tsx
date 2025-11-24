@@ -8,7 +8,7 @@ interface CartContextType {
   loading: boolean;
   addToCart: (productId: number, quantity?: number) => Promise<void>;
   updateQuantity: (itemId: number, quantity: number) => Promise<void>;
-  removeItem: (itemId: number) => Promise<void>;
+  removeItem: (itemId: number, quantity: number) => Promise<void>;
   refreshCart: () => Promise<void>;
   totalItems: number;
   totalPrice: number;
@@ -36,7 +36,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const cartData = await api.getCart();
-      setCart(cartData);
+      const productIds = cartData.map((item) => item.product_id);
+      const productMap = cartData.length
+        ? await api.getProductsByIds(productIds)
+        : new Map();
+      const enrichedCart = cartData.map((item) => ({
+        ...item,
+        product: productMap.get(item.product_id),
+      }));
+      setCart(enrichedCart);
     } catch (error) {
       console.error('Failed to fetch cart:', error);
     } finally {
@@ -76,9 +84,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const removeItem = async (itemId: number) => {
+  const removeItem = async (itemId: number, quantity: number) => {
     try {
-      await api.removeFromCart(itemId);
+      await api.removeFromCart(itemId, quantity);
       await refreshCart();
       toast({
         title: 'Removed from cart',
@@ -96,7 +104,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce(
-    (sum, item) => sum + (item.product?.price || 0) * item.quantity,
+    (sum, item) => sum + Number(item.product?.price ?? 0) * item.quantity,
     0
   );
 
