@@ -1,11 +1,11 @@
-import { Link } from 'react-router-dom';
-import { ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Product } from '@/lib/api';
-import { useCart } from '@/contexts/CartContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Product } from "@/lib/api";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface ProductCardProps {
   product: Product;
@@ -13,13 +13,17 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user?.role === "Admin";
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate("/login");
+      return;
+    }
+    if (isAdmin) {
       return;
     }
     await addToCart(product.id);
@@ -61,10 +65,10 @@ export function ProductCard({ product }: ProductCardProps) {
           <Button
             className="w-full"
             onClick={handleAddToCart}
-            disabled={product.stock === 0}
+            disabled={product.stock === 0 || isAdmin}
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
-            Add to Cart
+            {isAdmin ? "Admin Access" : "Add to Cart"}
           </Button>
         </CardFooter>
       </Card>

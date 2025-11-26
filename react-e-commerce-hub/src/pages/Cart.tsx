@@ -5,12 +5,15 @@ import { Card } from "@/components/ui/card";
 import { useCart } from "@/contexts/CartContext";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Cart() {
   const { cart, updateQuantity, removeItem, totalPrice, loading, refreshCart } =
     useCart();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "Admin";
 
   const handleCheckout = async () => {
     try {
@@ -30,6 +33,24 @@ export default function Cart() {
       });
     }
   };
+
+  if (isAdmin) {
+    return (
+      <div className="container py-16">
+        <Card className="max-w-md mx-auto text-center p-8">
+          <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Cart disabled for admins</h2>
+          <p className="text-muted-foreground mb-6">
+            Admin accounts are limited to catalog management. Switch to a
+            customer account to place orders.
+          </p>
+          <Link to="/products">
+            <Button>Back to Products</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

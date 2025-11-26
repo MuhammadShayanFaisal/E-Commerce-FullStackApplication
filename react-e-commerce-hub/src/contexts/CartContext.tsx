@@ -19,19 +19,20 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
+  const isAdmin = user?.role === 'Admin';
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isAdmin) {
       refreshCart();
     } else {
       setCart([]);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAdmin]);
 
   const refreshCart = async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || isAdmin) return;
     
     try {
       setLoading(true);

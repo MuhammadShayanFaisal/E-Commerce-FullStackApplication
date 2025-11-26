@@ -13,7 +13,8 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const isAdmin = user?.role === "Admin";
 
   useEffect(() => {
     if (id) {
@@ -35,6 +36,9 @@ export default function ProductDetail() {
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
       navigate("/login");
+      return;
+    }
+    if (isAdmin) {
       return;
     }
     if (product) {
@@ -138,10 +142,10 @@ export default function ProductDetail() {
               size="lg"
               className="flex-1"
               onClick={handleAddToCart}
-              disabled={product.stock === 0}
+              disabled={product.stock === 0 || isAdmin}
             >
               <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Cart
+              {isAdmin ? "Admin Access" : "Add to Cart"}
             </Button>
           </div>
         </div>

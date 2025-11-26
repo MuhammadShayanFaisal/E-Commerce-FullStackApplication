@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,13 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const isAdminRole = role === "Admin";
+
+  useEffect(() => {
+    if (isAdminRole) {
+      setPayment("Card");
+    }
+  }, [isAdminRole]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,7 +114,8 @@ export default function Register() {
                 onChange={(e) =>
                   setPayment(e.target.value as (typeof paymentOptions)[number])
                 }
-                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                disabled={isAdminRole}
+                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {paymentOptions.map((option) => (
                   <option key={option} value={option}>
@@ -115,6 +123,12 @@ export default function Register() {
                   </option>
                 ))}
               </select>
+              {isAdminRole && (
+                <p className="text-xs text-muted-foreground">
+                  Admins manage products and do not use checkout, so payment
+                  selection is disabled.
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Account Role</Label>
