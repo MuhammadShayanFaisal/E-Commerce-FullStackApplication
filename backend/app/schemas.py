@@ -125,3 +125,23 @@ class OrderResponse(BaseModel):
     amount: Decimal
     status: OrderStatusEnum
 
+
+class OrderItemDetail(BaseModel):
+    product_id: int
+    quantity: int
+    price: Decimal
+
+    class Config:
+        from_attributes = True
+
+
+class OrderDetailResponse(BaseModel):
+    id: int
+    user_id: int
+    amount: Decimal
+    status: OrderStatusEnum
+    created_at: datetime
+    items: List[OrderItemDetail]
+
+    class Config:
+        from_attributes = True
