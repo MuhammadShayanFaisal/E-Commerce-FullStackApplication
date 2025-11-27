@@ -323,6 +323,11 @@ class ApiClient {
     return data.map((order) => this.normalizeOrder(order));
   }
 
+  async getAllOrders(): Promise<Order[]> {
+    const data = await this.request<any[]>('/orders');
+    return data.map((order) => this.normalizeOrder(order));
+  }
+
   async createOrder(): Promise<OrderCreationResponse> {
     const response = await this.request<OrderCreationResponse>('/orders', {
       method: 'POST',

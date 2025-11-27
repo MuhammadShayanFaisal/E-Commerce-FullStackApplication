@@ -11,8 +11,9 @@ import { useToast } from "@/hooks/use-toast";
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading, user } = useAuth();
   const { toast } = useToast();
+  const isAdmin = user?.role === "Admin";
 
   const loadOrders = useCallback(async () => {
     if (!isAuthenticated) {
@@ -23,7 +24,8 @@ export default function Orders() {
 
     try {
       setLoading(true);
-      const data = await api.getMyOrders();
+      // If admin, get all orders; otherwise get only user's orders
+      const data = isAdmin ? await api.getAllOrders() : await api.getMyOrders();
       const productIds = data.flatMap((order) =>
         (order.items ?? []).map((item) => item.product_id)
       );
@@ -47,7 +49,7 @@ export default function Orders() {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, toast]);
+  }, [isAuthenticated, isAdmin, toast]);
 
   useEffect(() => {
     loadOrders();
@@ -118,13 +120,19 @@ export default function Orders() {
       <div className="container py-16">
         <Card className="max-w-md mx-auto text-center p-8">
           <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-bold mb-2">No orders yet</h2>
+          <h2 className="text-2xl font-bold mb-2">
+            {isAdmin ? "No orders found" : "No orders yet"}
+          </h2>
           <p className="text-muted-foreground mb-6">
-            When you place orders, they will appear here
+            {isAdmin
+              ? "There are no orders in the system yet."
+              : "When you place orders, they will appear here"}
           </p>
-          <Link to="/products">
-            <Button>Start Shopping</Button>
-          </Link>
+          {!isAdmin && (
+            <Link to="/products">
+              <Button>Start Shopping</Button>
+            </Link>
+          )}
         </Card>
       </div>
     );
@@ -132,7 +140,9 @@ export default function Orders() {
 
   return (
     <div className="container py-8">
-      <h1 className="text-4xl font-bold mb-8">My Orders</h1>
+      <h1 className="text-4xl font-bold mb-8">
+        {isAdmin ? "All Orders" : "My Orders"}
+      </h1>
 
       <div className="space-y-4">
         {orders.map((order) => (
@@ -148,15 +158,22 @@ export default function Orders() {
                   {order.status}
                 </Badge>
               </div>
-              {order.created_at && (
-                <p className="text-sm text-muted-foreground">
-                  {new Date(order.created_at).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              )}
+              <div className="flex items-center justify-between mt-2">
+                {order.created_at && (
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(order.created_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                )}
+                {isAdmin && order.user_id && (
+                  <p className="text-sm text-muted-foreground">
+                    User ID: {order.user_id}
+                  </p>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -181,7 +198,7 @@ export default function Orders() {
                       ${Number(order.amount).toFixed(2)}
                     </span>
                   </div>
-                  {order.status?.toLowerCase() === "pending" && (
+                  {order.status?.toLowerCase() === "pending" && !isAdmin && (
                     <Button
                       className="mt-4"
                       onClick={() => handlePay(order.id)}
