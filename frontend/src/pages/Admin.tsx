@@ -43,6 +43,8 @@ export default function Admin() {
     useState<ProductFormState>(defaultProductForm);
   const [submitting, setSubmitting] = useState(false);
   const [initializing, setInitializing] = useState(true);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const isAdmin = useMemo(() => user?.role === "Admin", [user]);
 
@@ -106,6 +108,30 @@ export default function Admin() {
     }
   };
 
+  const handleCategoryEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory) return;
+    try {
+      setSubmitting(true);
+      await api.updateCategory(editingCategory.id, {
+        name: editingCategory.name,
+        description: editingCategory.description,
+      });
+      toast({ title: "Category updated" });
+      setEditingCategory(null);
+      await loadData();
+    } catch (error) {
+      toast({
+        title: "Could not update category",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productForm.name || !productForm.category_id) {
@@ -136,6 +162,49 @@ export default function Admin() {
         title: "Could not create product",
         description:
           error instanceof Error ? error.message : "Please verify the data.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const startEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setProductForm({
+      name: product.name,
+      description: product.description,
+      price: String(product.price),
+      stock: String(product.stock),
+      min_stock_level: String(product.min_stock_level),
+      category_id: String(product.category_id ?? ""),
+      images: [],
+    });
+  };
+
+  const handleProductEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    try {
+      setSubmitting(true);
+      await api.updateProduct(editingProduct.id, {
+        name: productForm.name,
+        description: productForm.description,
+        price: Number(productForm.price),
+        stock: Number(productForm.stock),
+        min_stock_level: Number(productForm.min_stock_level),
+        category_id: Number(productForm.category_id),
+        image: "",
+      });
+      toast({ title: "Product updated" });
+      setEditingProduct(null);
+      setProductForm(defaultProductForm);
+      await loadData();
+    } catch (error) {
+      toast({
+        title: "Could not update product",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -271,7 +340,6 @@ export default function Admin() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="product-image">Product Image</Label>
-
                 <Input
                   id="product-image"
                   type="file"
@@ -284,7 +352,6 @@ export default function Admin() {
                     }))
                   }
                 />
-
                 {productForm.images.length > 0 && (
                   <div className="flex gap-2 flex-wrap">
                     {productForm.images.map((file, idx) => (
@@ -381,6 +448,193 @@ export default function Admin() {
         </Card>
       </div>
 
+      {/* Edit Category Modal */}
+      {editingCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>Edit Category</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form className="space-y-4" onSubmit={handleCategoryEdit}>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-cat-name">Name</Label>
+                  <Input
+                    id="edit-cat-name"
+                    value={editingCategory.name}
+                    onChange={(e) =>
+                      setEditingCategory((prev) =>
+                        prev ? { ...prev, name: e.target.value } : prev
+                      )
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-cat-desc">Description</Label>
+                  <Textarea
+                    id="edit-cat-desc"
+                    value={editingCategory.description ?? ""}
+                    onChange={(e) =>
+                      setEditingCategory((prev) =>
+                        prev ? { ...prev, description: e.target.value } : prev
+                      )
+                    }
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={submitting} className="flex-1">
+                    Save
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setEditingCategory(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <Card className="w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle>Edit Product</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form className="space-y-4" onSubmit={handleProductEdit}>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-prod-name">Name</Label>
+                  <Input
+                    id="edit-prod-name"
+                    value={productForm.name}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-prod-desc">Description</Label>
+                  <Textarea
+                    id="edit-prod-desc"
+                    value={productForm.description}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
+                    required
+                  />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-prod-price">Price</Label>
+                    <Input
+                      id="edit-prod-price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={productForm.price}
+                      onChange={(e) =>
+                        setProductForm((prev) => ({
+                          ...prev,
+                          price: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-prod-stock">Stock</Label>
+                    <Input
+                      id="edit-prod-stock"
+                      type="number"
+                      min="0"
+                      value={productForm.stock}
+                      onChange={(e) =>
+                        setProductForm((prev) => ({
+                          ...prev,
+                          stock: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-prod-min-stock">Min stock alert</Label>
+                    <Input
+                      id="edit-prod-min-stock"
+                      type="number"
+                      min="0"
+                      value={productForm.min_stock_level}
+                      onChange={(e) =>
+                        setProductForm((prev) => ({
+                          ...prev,
+                          min_stock_level: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-prod-category">Category</Label>
+                    <select
+                      id="edit-prod-category"
+                      value={productForm.category_id}
+                      onChange={(e) =>
+                        setProductForm((prev) => ({
+                          ...prev,
+                          category_id: e.target.value,
+                        }))
+                      }
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      required
+                    >
+                      <option value="" disabled>
+                        Select category
+                      </option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={submitting} className="flex-1">
+                    Save
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setEditingProduct(null);
+                      setProductForm(defaultProductForm);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -405,13 +659,22 @@ export default function Admin() {
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteCategory(category.id)}
-                  >
-                    Delete
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingCategory(category)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteCategory(category.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               ))
             )}
@@ -445,13 +708,22 @@ export default function Admin() {
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteProduct(product.id)}
-                  >
-                    Delete
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => startEditProduct(product)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteProduct(product.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               ))
             )}
