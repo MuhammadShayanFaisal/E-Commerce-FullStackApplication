@@ -1,10 +1,14 @@
-from math import prod
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+import os
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Form, UploadFile, File
 from typing import Optional, List
 from ..database import db_dependency
 from .. import schemas, models
 from sqlalchemy.orm import joinedload
 from ..auth import require_admin, get_current_user
+
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -41,16 +45,34 @@ async def get_product_by_id(product_id: int, db: db_dependency):
 	return product
 
 
-@router.post("", response_model=schemas.ProductResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
-async def create_product(product: schemas.ProductCreate, db: db_dependency):
-	# Minimal validation; in a real app use a ProductCreate schema
+@router.post("/add-product", response_model=schemas.ProductResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
+async def create_product(
+	name: str = Form(...),
+	description: str = Form(...),
+	price: float = Form(...),
+	stock: int = Form(...),
+	min_stock_level: int = Form(...),
+	category_id: int = Form(...),
+	images: List[UploadFile] = File(default=[]),
+	db: db_dependency = None,
+):
+	saved_paths: list[str] = []
+	for upload in images:
+		ext = os.path.splitext(upload.filename or "")[1]
+		filename = f"{uuid.uuid4().hex}{ext}"
+		filepath = os.path.join(UPLOAD_DIR, filename)
+		with open(filepath, "wb") as f:
+			f.write(await upload.read())
+		saved_paths.append(f"uploads/{filename}")
+
 	product = models.Product(
-		name=product.name,
-		description=product.description,
-		price=product.price,
-		stock=product.stock,
-		min_stock_level=product.min_stock_level,
-		category_id=product.category_id,
+		name=name,
+		description=description,
+		price=price,
+		stock=stock,
+		min_stock_level=min_stock_level,
+		category_id=category_id,
+		image=",".join(saved_paths),
 	)
 	db.add(product)
 	db.commit()

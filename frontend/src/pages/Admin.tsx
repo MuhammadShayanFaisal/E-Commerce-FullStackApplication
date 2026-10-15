@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, Category, CategoryInput, Product, ProductInput } from "@/lib/api";
+import { api, Category, CategoryInput, Product } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ interface ProductFormState {
   stock: string;
   min_stock_level: string;
   category_id: string;
+  images: File[];
 }
 
 const defaultProductForm: ProductFormState = {
@@ -25,6 +26,7 @@ const defaultProductForm: ProductFormState = {
   stock: "",
   min_stock_level: "",
   category_id: "",
+  images: [],
 };
 
 export default function Admin() {
@@ -115,18 +117,17 @@ export default function Admin() {
       return;
     }
 
-    const payload: ProductInput = {
-      name: productForm.name,
-      description: productForm.description,
-      price: Number(productForm.price),
-      stock: Number(productForm.stock),
-      min_stock_level: Number(productForm.min_stock_level),
-      category_id: Number(productForm.category_id),
-    };
-
     try {
       setSubmitting(true);
-      await api.createProduct(payload);
+      await api.createProduct({
+        name: productForm.name,
+        description: productForm.description,
+        price: Number(productForm.price),
+        stock: Number(productForm.stock),
+        min_stock_level: Number(productForm.min_stock_level),
+        category_id: Number(productForm.category_id),
+        images: productForm.images,
+      });
       toast({ title: "Product created" });
       setProductForm(defaultProductForm);
       await loadData();
@@ -267,6 +268,35 @@ export default function Admin() {
                   }
                   required
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="product-image">Product Image</Label>
+
+                <Input
+                  id="product-image"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) =>
+                    setProductForm((prev) => ({
+                      ...prev,
+                      images: Array.from(e.target.files ?? []),
+                    }))
+                  }
+                />
+
+                {productForm.images.length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
+                    {productForm.images.map((file, idx) => (
+                      <img
+                        key={idx}
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className="h-16 w-16 rounded object-cover border"
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">

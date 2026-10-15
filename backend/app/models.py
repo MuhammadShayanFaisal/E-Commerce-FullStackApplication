@@ -90,6 +90,7 @@ class Product(Base):
     min_stock_level = Column(Integer, nullable=False)
     category_id = Column(Integer, ForeignKey(Category.id))
     created_at = Column(DateTime, default=datetime.utcnow)
+    image = Column(Text, nullable=True)
 
     # relationship
 
