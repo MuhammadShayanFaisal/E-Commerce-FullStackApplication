@@ -414,4 +414,44 @@ class ApiClient {
   }
 }
 
+  // Analytics endpoints
+  async getAnalyticsSummary() {
+    return this.request<{
+      total_revenue: number;
+      total_orders: number;
+      total_products: number;
+      total_customers: number;
+      avg_order_value: number;
+    }>('/analytics/summary');
+  }
+
+  async getAnalyticsSalesOverTime(period: string = 'month', months: number = 12) {
+    return this.request<Array<{ period: string; revenue: number; orders: number }>>(
+      `/analytics/sales-over-time?period=${period}&months=${months}`
+    );
+  }
+
+  async getAnalyticsBestSellers(limit: number = 10) {
+    return this.request<Array<{ id: number; name: string; units_sold: number; revenue: number }>>(
+      `/analytics/best-sellers?limit=${limit}`
+    );
+  }
+
+  async getAnalyticsUnsoldProducts() {
+    return this.request<Array<{ id: number; name: string; stock: number; category: string | null }>>(
+      '/analytics/unsold-products'
+    );
+  }
+
+  async getAnalyticsRecentOrders(limit: number = 10) {
+    return this.request<Array<{
+      order_id: number;
+      customer: string;
+      status: string;
+      amount: number;
+      created_at: string;
+    }>>(`/analytics/recent-orders?limit=${limit}`);
+  }
+}
+
 export const api = new ApiClient();

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from . import models
-from .routers import user, products, auth as auth_router, cart, orders, payments, user_profile, categories
+from .routers import user, products, auth as auth_router, cart, orders, payments, user_profile, categories, analytics
 from .database import engine
 import os
 
@@ -22,6 +22,7 @@ app.include_router(orders.router)
 app.include_router(payments.router)
 app.include_router(user_profile.router)
 app.include_router(categories.router)
+app.include_router(analytics.router)
 
 # CORS (adjust origins as needed)
 app.add_middleware(
