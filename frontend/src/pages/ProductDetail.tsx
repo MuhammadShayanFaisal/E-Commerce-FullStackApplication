@@ -75,15 +75,35 @@ export default function ProductDetail() {
       </Button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="aspect-square overflow-hidden rounded-lg bg-muted">
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt={product.name}
-              className="h-full w-full object-cover"
-            />
+        <div className="space-y-4">
+          {product.image ? (
+            <>
+              <div className="aspect-square overflow-hidden rounded-lg bg-muted">
+                <img
+                  src={`http://localhost:8000/${product.image.split(',')[0]}`}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              {product.image.split(',').length > 1 && (
+                <div className="flex gap-2 flex-wrap">
+                  {product.image.split(',').map((path, idx) => (
+                    <img
+                      key={idx}
+                      src={`http://localhost:8000/${path}`}
+                      alt={`${product.name} - ${idx + 1}`}
+                      className="h-16 w-16 rounded object-cover border cursor-pointer hover:ring-2 hover:ring-primary"
+                      onClick={() => {
+                        const main = document.querySelector('.aspect-square img') as HTMLImageElement;
+                        if (main) main.src = `http://localhost:8000/${path}`;
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
+            <div className="aspect-square overflow-hidden rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
               <ShoppingCart className="h-32 w-32" />
             </div>
           )}

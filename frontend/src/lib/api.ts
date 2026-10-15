@@ -47,7 +47,7 @@ export interface Product {
   created_at: string;
   category?: Category;
   category_id?: number;
-  image_url?: string;
+  image?: File;
 }
 
 export interface ProductInput {
@@ -57,6 +57,7 @@ export interface ProductInput {
   stock: number;
   min_stock_level: number;
   category_id: number;
+  image: File
 }
 
 export interface CategoryInput {
@@ -147,7 +148,7 @@ class ApiClient {
             description: product.category.description,
           }
         : undefined,
-      image_url: product.image_url,
+      image: typeof product.image === 'string' ? product.image : '',
     };
   }
 
@@ -378,10 +379,22 @@ class ApiClient {
   }
 
   // Admin product endpoints
-  async createProduct(payload: ProductInput): Promise<Product> {
-    const product = await this.request<Product>('/products', {
+  async createProduct(payload: Omit<ProductInput, 'image'> & { images: File[] }): Promise<Product> {
+    const formData = new FormData();
+    formData.append('name', payload.name);
+    formData.append('description', payload.description);
+    formData.append('price', String(payload.price));
+    formData.append('stock', String(payload.stock));
+    formData.append('min_stock_level', String(payload.min_stock_level));
+    formData.append('category_id', String(payload.category_id));
+    for (const file of payload.images) {
+      formData.append('images', file);
+    }
+
+    const product = await this.request<Product>('/products/add-product', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      headers: {},
+      body: formData,
     });
     return this.normalizeProduct(product);
   }

@@ -97,9 +97,9 @@ export default function Cart() {
               <Card key={item.id} className="p-4">
                 <div className="flex gap-4">
                   <div className="w-24 h-24 flex-shrink-0 bg-muted rounded-md overflow-hidden">
-                    {item.product?.image_url ? (
+                    {item.product?.image ? (
                       <img
-                        src={item.product.image_url}
+                        src={item.product.image}
                         alt={item.product.name}
                         className="w-full h-full object-cover"
                       />

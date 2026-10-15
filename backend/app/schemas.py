@@ -4,6 +4,7 @@ from typing import List, Optional
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
+from fastapi import UploadFile
 
 class PaymentMethodEnum(str, Enum):
     CARD = "Card"
