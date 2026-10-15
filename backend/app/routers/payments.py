@@ -25,7 +25,7 @@ async def pay_order(order_id: int, db: db_dependency, current_user: models.User 
 		payment = models.Payment(
 			order_id=order.id,
 			amount=order.amount,
-			method=current_user.payment_options,
+			method=order.payment.method if order.payment else models.PaymentMethod.CARD,
 			status=models.PaymentStatus.COMPLETED,
 			transaction_id=f"TXN-{order.id}-{int(datetime.utcnow().timestamp())}",
 		)

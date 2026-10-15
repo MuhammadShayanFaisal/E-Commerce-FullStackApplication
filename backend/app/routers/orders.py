@@ -8,7 +8,11 @@ from ..auth import get_current_user, require_admin
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=schemas.OrderResponse)
-async def create_order_from_cart(db: db_dependency, current_user: models.User = Depends(get_current_user)):
+async def create_order_from_cart(
+    payment_method: str = "Card",
+    db: db_dependency = None,
+    current_user: models.User = Depends(get_current_user),
+):
     cart = db.query(models.Cart).filter(models.Cart.user_id == current_user.id).first()
     if not cart:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cart is empty")
@@ -18,9 +22,8 @@ async def create_order_from_cart(db: db_dependency, current_user: models.User = 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No items in cart")
 
     total_amount = Decimal("0.00")
-    products_map = {}  # Store product objects to avoid multiple queries
+    products_map = {}
 
-    # Validate stock and calculate total
     for ci in cart_items:
         product = db.query(models.Product).filter(models.Product.id == ci.product_id).first()
         if not product:
@@ -35,6 +38,16 @@ async def create_order_from_cart(db: db_dependency, current_user: models.User = 
     db.add(order)
     db.commit()
     db.refresh(order)
+
+    # Create pending payment record with selected method
+    payment = models.Payment(
+        order_id=order.id,
+        amount=total_amount,
+        method=payment_method,
+        status=models.PaymentStatus.PENDING,
+    )
+    db.add(payment)
+    db.commit()
 
     # Create order items and decrement stock
     for ci in cart_items:

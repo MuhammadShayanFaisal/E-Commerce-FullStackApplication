@@ -37,9 +37,7 @@ async def user_register(user: schemas.UserRegister, db: db_dependency):
         username=user.username,
         email=user.email,
         password=hashed_password,
-        payment_options=user.payment_options,
-        role=user.role,
-        location=user.location
+        location=user.location,
     )
     
     # Add to database

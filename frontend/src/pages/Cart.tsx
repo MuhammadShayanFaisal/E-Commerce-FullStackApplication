@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { useCart } from "@/contexts/CartContext";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+
+const PAYMENT_METHODS = ["Card", "Cash", "Wallet"] as const;
 
 export default function Cart() {
   const { cart, updateQuantity, removeItem, totalPrice, loading, refreshCart } =
@@ -14,10 +18,11 @@ export default function Cart() {
   const { toast } = useToast();
   const { user } = useAuth();
   const isAdmin = user?.role === "Admin";
+  const [paymentMethod, setPaymentMethod] = useState<(typeof PAYMENT_METHODS)[number]>("Card");
 
   const handleCheckout = async () => {
     try {
-      const orderResponse = await api.createOrder();
+      const orderResponse = await api.createOrder(paymentMethod);
       await refreshCart();
       toast({
         title: "Order placed!",
@@ -191,11 +196,29 @@ export default function Cart() {
               </div>
             </div>
 
-            <div className="border-t pt-4 mb-6">
+            <div className="border-t pt-4 mb-4">
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
                 <span>${totalPrice.toFixed(2)}</span>
               </div>
+            </div>
+
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="payment-method">Payment Method</Label>
+              <select
+                id="payment-method"
+                value={paymentMethod}
+                onChange={(e) =>
+                  setPaymentMethod(e.target.value as (typeof PAYMENT_METHODS)[number])
+                }
+                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                {PAYMENT_METHODS.map((method) => (
+                  <option key={method} value={method}>
+                    {method}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <Button className="w-full" size="lg" onClick={handleCheckout}>

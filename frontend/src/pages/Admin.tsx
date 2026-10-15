@@ -186,14 +186,11 @@ export default function Admin() {
 
   return (
     <div className="container py-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold">Admin Control Center</h1>
-          <p className="text-muted-foreground">
-            Manage products and categories available to shoppers.
-          </p>
-        </div>
-        <Button onClick={() => navigate("/analytics")}>Analytics</Button>
+      <div>
+        <h1 className="text-4xl font-bold">Admin Control Center</h1>
+        <p className="text-muted-foreground">
+          Manage products and categories available to shoppers.
+        </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

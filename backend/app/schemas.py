@@ -31,8 +31,6 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(max_length=10)
     location: Optional[str] = Field(default="", max_length=100)
-    payment_options: PaymentMethodEnum = PaymentMethodEnum.CARD
-    role: RoleEnum = RoleEnum.USER
 
 class UserResponse(BaseModel):
     id: int

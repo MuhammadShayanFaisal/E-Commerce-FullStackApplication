@@ -329,10 +329,11 @@ class ApiClient {
     return data.map((order) => this.normalizeOrder(order));
   }
 
-  async createOrder(): Promise<OrderCreationResponse> {
-    const response = await this.request<OrderCreationResponse>('/orders', {
-      method: 'POST',
-    });
+  async createOrder(paymentMethod: string = 'Card'): Promise<OrderCreationResponse> {
+    const response = await this.request<OrderCreationResponse>(
+      `/orders?payment_method=${encodeURIComponent(paymentMethod)}`,
+      { method: 'POST' }
+    );
     return {
       order_id: response.order_id,
       amount: Number(response.amount ?? 0),

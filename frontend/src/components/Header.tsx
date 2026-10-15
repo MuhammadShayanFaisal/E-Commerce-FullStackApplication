@@ -40,12 +40,20 @@ export function Header() {
             Categories
           </Link>
           {user?.role === "Admin" && (
-            <Link
-              to="/admin"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              Admin
-            </Link>
+            <>
+              <Link
+                to="/admin"
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
+                Admin
+              </Link>
+              <Link
+                to="/analytics"
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
+                Analytics
+              </Link>
+            </>
           )}
         </nav>
 
