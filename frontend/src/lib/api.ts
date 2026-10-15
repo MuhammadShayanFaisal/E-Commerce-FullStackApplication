@@ -412,7 +412,7 @@ class ApiClient {
       method: 'DELETE',
     });
   }
-}
+
 
   // Analytics endpoints
   async getAnalyticsSummary() {

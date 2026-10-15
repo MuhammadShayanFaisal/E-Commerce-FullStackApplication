@@ -247,7 +247,7 @@ export default function Analytics() {
                   </tr>
                 ))}
               </tbody>
-            
+            </table>
           </div>
         </CardContent>
       </Card>
